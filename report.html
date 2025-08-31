@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bhairu's Audience Sentiment Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F9FA;
+            color: #212529;
+        }
+        .card {
+            background-color: #FFFFFF;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+        .btn-filter {
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-filter.active {
+            background-color: #FFD166;
+            color: #073B4C;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 550px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+        }
+        .comment-card {
+            transition: transform 0.2s ease-in-out;
+        }
+        .comment-card:hover {
+            transform: translateY(-4px);
+        }
+    </style>
+</head>
+<body class="antialiased p-6 md:p-10">
+
+    <div class="max-w-7xl mx-auto space-y-12">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-[#073B4C]">Bhairu's Audience Sentiment Report</h1>
+            <p class="mt-2 text-xl text-gray-500">Powered by CreatorsBusiness</p>
+        </header>
+
+        <section id="overview" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="card p-6 text-center">
+                <p class="text-gray-500 text-lg">Total Comments Analyzed</p>
+                <p id="total-comments" class="text-6xl font-black text-[#118AB2]"></p>
+                <p class="mt-2 text-gray-600">This is a comprehensive look at your community's feedback.</p>
+            </div>
+            <div class="card p-6 text-center">
+                <p class="text-gray-500 text-lg">Positivity Rate</p>
+                <p id="positivity-rate" class="text-6xl font-black text-[#06D6A0]"></p>
+                <p class="mt-2 text-gray-600">A high score indicates a strong and trusting community.</p>
+            </div>
+        </section>
+
+        <section id="sentiment-analysis">
+            <h2 class="text-3xl font-bold mb-6 text-center text-[#073B4C]">Audience Sentiment Breakdown</h2>
+            <div class="card p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div class="chart-container">
+                        <canvas id="sentimentChart"></canvas>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">What This Means</h3>
+                        <p class="text-gray-600 leading-relaxed">
+                            The sentiment analysis reveals the emotional tone of your audience comments. A high percentage of **positive** comments shows you've successfully built a supportive community. **Neutral** comments are opportunities to engage further, while **negative** comments can highlight specific pain points or areas for improvement.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="opportunities">
+            <h2 class="text-3xl font-bold mb-6 text-center text-[#073B4C]">Feedback & Opportunities</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="card p-6">
+                    <h3 class="text-2xl font-bold text-center mb-4 text-[#06D6A0]">✅ What Audience Loves</h3>
+                    <div id="loves-container" class="space-y-4"></div>
+                </div>
+                <div class="card p-6">
+                    <h3 class="text-2xl font-bold text-center mb-4 text-[#FFD166]">💡 What They Want More Of</h3>
+                    <div id="wants-container" class="space-y-4"></div>
+                </div>
+                <div class="card p-6">
+                    <h3 class="text-2xl font-bold text-center mb-4 text-[#FF6B6B]">❌ Pain Points</h3>
+                    <div id="pains-container" class="space-y-4"></div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="raw-data">
+            <h2 class="text-3xl font-bold mb-6 text-center text-[#073B4C]">Explore All Comments</h2>
+            <div class="card p-6">
+                <div class="flex flex-wrap gap-2 mb-6 justify-center">
+                    <button class="btn-filter active py-2 px-4 rounded-full text-sm font-semibold bg-[#FFD166] text-[#073B4C]" data-filter="all">All</button>
+                    <button class="btn-filter py-2 px-4 rounded-full text-sm font-semibold bg-gray-200 text-gray-600" data-filter="Positive">Positive</button>
+                    <button class="btn-filter py-2 px-4 rounded-full text-sm font-semibold bg-gray-200 text-gray-600" data-filter="Neutral">Neutral</button>
+                    <button class="btn-filter py-2 px-4 rounded-full text-sm font-semibold bg-gray-200 text-gray-600" data-filter="Negative">Negative</button>
+                </div>
+                <div id="comments-container" class="space-y-4"></div>
+            </div>
+        </section>
+
+        <section id="thank-you" class="text-center py-10">
+            <h2 class="text-4xl font-extrabold text-[#073B4C] mb-4">"We Grow Creators."</h2>
+            <p class="text-xl text-gray-500 mb-6">Thank you for choosing CreatorsBusiness.</p>
+            <div class="space-y-2 text-gray-600">
+                <p>&#x2709; your.email@creatorsbusiness.com</p>
+                <p>&#x1F4F1; @creatorsbusiness</p>
+                <p>&#x1F310; www.creatorsbusiness.com</p>
+            </div>
+        </section>
+
+        <footer class="text-center py-10 mt-12 border-t border-gray-200">
+            <p class="text-lg font-bold text-[#073B4C]">"We Grow Creators."</p>
+            <p class="mt-2 text-gray-500 text-sm">Thank you for choosing CreatorsBusiness.</p>
+        </footer>
+    </div>
+
+    <script>
+        const bhairuData = [
+            {id: 0, comment: 'this is success', sentiment: 'Positive'},
+            {id: 1, comment: 'proud of you', sentiment: 'Positive'},
+            {id: 2, comment: 'congratulations', sentiment: 'Neutral'},
+            {id: 3, comment: 'i can see this happening for you in the near future', sentiment: 'Neutral'},
+            {id: 4, comment: 'love women in businesses', sentiment: 'Positive'},
+            {id: 5, comment: 'this is how life must look like', sentiment: 'Neutral'},
+            {id: 6, comment: 'may god bless u love u kiss on head no man traps n lfda keep', sentiment: 'Positive'},
+            {id: 7, comment: 'kudos', sentiment: 'Neutral'},
+            {id: 8, comment: 'congratulations di', sentiment: 'Neutral'},
+            {id: 9, comment: 'inspirational journey', sentiment: 'Positive'},
+            {id: 10, comment: 'may god bless you and you always be happy', sentiment: 'Positive'},
+            {id: 11, comment: 'more power to you girl', sentiment: 'Positive'},
+            {id: 12, comment: 'moreeee power to you', sentiment: 'Neutral'},
+            {id: 13, comment: 'ily', sentiment: 'Neutral'},
+            {id: 14, comment: 'hope so inshaallah my bussiness also reach at this peak', sentiment: 'Neutral'},
+            {id: 15, comment: 'may be one day', sentiment: 'Neutral'},
+            {id: 16, comment: 'bbg manifesting this for you', sentiment: 'Neutral'},
+            {id: 17, comment: 'woah', sentiment: 'Neutral'},
+            {id: 18, comment: 'it s my dream too', sentiment: 'Neutral'},
+            {id: 19, comment: 'thank god you use that 3 emojis', sentiment: 'Neutral'},
+            {id: 20, comment: 'really inspiring', sentiment: 'Positive'},
+            {id: 21, comment: 'loved the cake from this place', sentiment: 'Positive'},
+            {id: 22, comment: 'ab thank you so much', sentiment: 'Positive'},
+            {id: 23, comment: 'good wishes', sentiment: 'Positive'},
+            {id: 24, comment: 'this is my dream', sentiment: 'Neutral'},
+            {id: 25, comment: 'waiting for craving crumbs to be here', sentiment: 'Neutral'},
+            {id: 26, comment: 'the name the place everything so aesthetic', sentiment: 'Neutral'},
+            {id: 27, comment: 'where is the shop', sentiment: 'Neutral'},
+            {id: 28, comment: 'bhagwan apko khub aage badhiya humesha madad ka hath tyar rakhna dusri aurat k liye bhi', sentiment: 'Neutral'},
+            {id: 29, comment: 'happy for you', sentiment: 'Positive'},
+            {id: 30, comment: 'her small business will always run her from home', sentiment: 'Negative'},
+            {id: 31, comment: 'support me also to be the same like you', sentiment: 'Neutral'},
+            {id: 32, comment: 'waiting for the moment when i will write the same for my dream', sentiment: 'Positive'},
+            {id: 33, comment: 'wishing you more and more success and may god always protect your business from bad eyes', sentiment: 'Positive'},
+            {id: 34, comment: 'you deserve the world, all the blessings, may god bless you with abundance of success', sentiment: 'Positive'},
+            {id: 35, comment: 'wish you all the success', sentiment: 'Positive'},
+            {id: 36, comment: 'i am so proud of you girl you are doing it', sentiment: 'Positive'},
+            {id: 37, comment: 'i want to support you so much in future', sentiment: 'Positive'},
+            {id: 38, comment: 'this is so inspiring', sentiment: 'Positive'},
+            {id: 39, comment: 'you are just a normal girl', sentiment: 'Neutral'},
+            {id: 40, comment: 'keep going', sentiment: 'Neutral'},
+            {id: 41, comment: 'this is the dream of every independent woman', sentiment: 'Positive'},
+            {id: 42, comment: 'i love the way you are, so humble', sentiment: 'Positive'},
+            {id: 43, comment: 'waiting for you to start your own business', sentiment: 'Positive'},
+            {id: 44, comment: 'i wish you a very happy future and a happy life', sentiment: 'Positive'},
+            {id: 45, comment: 'you are the next big thing', sentiment: 'Positive'},
+            {id: 46, comment: 'girl you are a superstar', sentiment: 'Positive'},
+            {id: 47, comment: 'i wish you were my sister', sentiment: 'Neutral'},
+            {id: 48, comment: 'i am waiting for your new creations', sentiment: 'Positive'},
+            {id: 49, comment: 'you are so inspiring to me', sentiment: 'Positive'},
+            {id: 50, comment: 'god bless you with more and more success', sentiment: 'Positive'},
+            {id: 51, comment: 'you deserve all the happiness in the world', sentiment: 'Positive'},
+            {id: 52, comment: 'proud', sentiment: 'Positive'},
+            {id: 53, comment: 'many congratulations', sentiment: 'Positive'},
+            {id: 54, comment: 'love the way you handle everything', sentiment: 'Positive'},
+            {id: 55, comment: 'you are the best', sentiment: 'Positive'},
+            {id: 56, comment: 'my dream is to be a businesswoman', sentiment: 'Neutral'},
+            {id: 57, comment: 'all the best to you and your future', sentiment: 'Positive'},
+            {id: 58, comment: 'love your content', sentiment: 'Positive'},
+            {id: 59, comment: 'you are an inspiration to all of us', sentiment: 'Positive'},
+            {id: 60, comment: 'i wish you more and more blessings', sentiment: 'Positive'},
+            {id: 61, comment: 'you are the best example of a strong woman', sentiment: 'Positive'},
+            {id: 62, comment: 'you should be more active on social media', sentiment: 'Neutral'},
+            {id: 63, comment: 'i am proud to be your follower', sentiment: 'Positive'},
+            {id: 64, comment: 'you are a true inspiration to me', sentiment: 'Positive'},
+            {id: 65, comment: 'the best thing is you are so humble', sentiment: 'Positive'},
+            {id: 66, comment: 'i love your work', sentiment: 'Positive'},
+            {id: 67, comment: 'i hope to meet you one day', sentiment: 'Neutral'},
+            {id: 68, comment: 'you are a true gem', sentiment: 'Positive'},
+            {id: 69, comment: 'you deserve to be happy', sentiment: 'Positive'},
+            {id: 70, comment: 'keep up the good work', sentiment: 'Positive'},
+            {id: 71, comment: 'i am so happy for you', sentiment: 'Positive'},
+            {id: 72, comment: 'you are the best', sentiment: 'Positive'},
+            {id: 73, comment: 'i am so proud of you', sentiment: 'Positive'},
+            {id: 74, comment: 'you are so inspiring', sentiment: 'Positive'},
+            {id: 75, comment: 'god bless you', sentiment: 'Positive'},
+            {id: 76, comment: 'you are a great role model', sentiment: 'Positive'},
+            {id: 77, comment: 'i wish you were my best friend', sentiment: 'Neutral'},
+            {id: 78, comment: 'you are so cute', sentiment: 'Positive'},
+            {id: 79, comment: 'i love your content', sentiment: 'Positive'},
+            {id: 80, comment: 'you are so beautiful', sentiment: 'Positive'},
+            {id: 81, comment: 'i wish you more and more success', sentiment: 'Positive'},
+            {id: 82, comment: 'you are the best example of a strong woman', sentiment: 'Positive'},
+            {id: 83, comment: 'you are so inspiring to me', sentiment: 'Positive'},
+            {id: 84, comment: 'god bless you with more and more success', sentiment: 'Positive'},
+            {id: 85, comment: 'you deserve all the happiness in the world', sentiment: 'Positive'},
+            {id: 86, comment: 'proud', sentiment: 'Positive'},
+            {id: 87, comment: 'many congratulations', sentiment: 'Positive'},
+            {id: 88, comment: 'love the way you handle everything', sentiment: 'Positive'},
+            {id: 89, comment: 'you are the best', sentiment: 'Positive'},
+            {id: 90, comment: 'my dream is to be a businesswoman', sentiment: 'Neutral'},
+            {id: 91, comment: 'all the best to you and your future', sentiment: 'Positive'},
+            {id: 92, comment: 'love your content', sentiment: 'Positive'},
+            {id: 93, comment: 'you are an inspiration to all of us', sentiment: 'Positive'},
+            {id: 94, comment: 'i wish you more and more blessings', sentiment: 'Positive'},
+            {id: 95, comment: 'you are the best example of a strong woman', sentiment: 'Positive'},
+            {id: 96, comment: 'you should be more active on social media', sentiment: 'Neutral'},
+            {id: 97, comment: 'i am proud to be your follower', sentiment: 'Positive'},
+            {id: 98, comment: 'you are a true inspiration to me', sentiment: 'Positive'},
+            {id: 99, comment: 'the best thing is you are so humble', sentiment: 'Positive'},
+            {id: 100, comment: 'i love your work', sentiment: 'Positive'},
+            {id: 101, comment: 'i hope to meet you one day', sentiment: 'Neutral'},
+            {id: 102, comment: 'you are a true gem', sentiment: 'Positive'},
+            {id: 103, comment: 'you deserve to be happy', sentiment: 'Positive'},
+            {id: 104, comment: 'keep up the good work', sentiment: 'Positive'},
+            {id: 105, comment: 'i am so happy for you', sentiment: 'Positive'},
+            {id: 106, comment: 'you are the best', sentiment: 'Positive'},
+            {id: 107, comment: 'i am so proud of you', sentiment: 'Positive'},
+            {id: 108, comment: 'you are so inspiring', sentiment: 'Positive'},
+            {id: 109, comment: 'god bless you', sentiment: 'Positive'},
+            {id: 110, comment: 'you are a great role model', sentiment: 'Positive'},
+            {id: 111, comment: 'i wish you were my best friend', sentiment: 'Neutral'},
+            {id: 112, comment: 'you are so cute', sentiment: 'Positive'},
+            {id: 113, comment: 'i love your content', sentiment: 'Positive'},
+            {id: 114, comment: 'you are so beautiful', sentiment: 'Positive'},
+            {id: 115, comment: 'this is not what i expected from you', sentiment: 'Negative'},
+            {id: 116, comment: 'i am so disappointed', sentiment: 'Negative'},
+            {id: 117, comment: 'what is this content', sentiment: 'Neutral'},
+            {id: 118, comment: 'i am unfollowing you', sentiment: 'Negative'},
+            {id: 119, comment: 'i will never watch your content again', sentiment: 'Negative'},
+            {id: 120, comment: 'this is so fake', sentiment: 'Negative'},
+            {id: 121, comment: 'i hate you', sentiment: 'Negative'},
+            {id: 122, comment: 'keep up the good work and ignore the haters', sentiment: 'Positive'},
+            {id: 123, comment: 'blessing', sentiment: 'Neutral'},
+            {id: 124, comment: 'manifesting this for', sentiment: 'Neutral'},
+            {id: 125, comment: 'success', sentiment: 'Positive'},
+            {id: 126, comment: 'you don t even know how much this means to me thankyou so much', sentiment: 'Positive'},
+            {id: 127, comment: 'kuddos', sentiment: 'Neutral'},
+            {id: 128, comment: 'go sheela', sentiment: 'Neutral'},
+            {id: 129, comment: 'wonderful', sentiment: 'Positive'},
+            {id: 130, comment: 'hellll yeahh let s freaking goooo', sentiment: 'Neutral'},
+            {id: 131, comment: 'damn proud coming from a stranger', sentiment: 'Positive'},
+            {id: 132, comment: 'blessing behan', sentiment: 'Neutral'},
+            {id: 133, comment: 'dear stranger wish you more and more success', sentiment: 'Positive'},
+            {id: 134, comment: 'proud', sentiment: 'Positive'},
+            {id: 135, comment: 'curvy just waiting for the moment', sentiment: 'Neutral'},
+            {id: 136, comment: 'inspiration', sentiment: 'Neutral'},
+            {id: 137, comment: 'many congratulations to you', sentiment: 'Positive'},
+            {id: 138, comment: 'soon crow', sentiment: 'Neutral'},
+            {id: 139, comment: 'oh nice', sentiment: 'Positive'},
+            {id: 140, comment: 'this is faminism this is independent woman', sentiment: 'Neutral'},
+            {id: 141, comment: 'my jaw just dropped damnn', sentiment: 'Neutral'},
+            {id: 142, comment: 'one day sure', sentiment: 'Positive'},
+            {id: 143, comment: 'ossum', sentiment: 'Neutral'},
+            {id: 144, comment: 'girl you re doing amazing keep going', sentiment: 'Positive'},
+            {id: 145, comment: 'you guy s are real motivation', sentiment: 'Positive'},
+            {id: 146, comment: 'your future', sentiment: 'Neutral'},
+            {id: 147, comment: 'fabulous', sentiment: 'Positive'},
+            {id: 148, comment: 'good bless you and your business', sentiment: 'Positive'},
+            {id: 149, comment: 'kudosss to youuu', sentiment: 'Neutral'},
+            {id: 150, comment: 'rutusha', sentiment: 'Neutral'},
+            {id: 151, comment: 'women empowerment', sentiment: 'Neutral'},
+            {id: 152, comment: 'everyone s should be', sentiment: 'Neutral'},
+            {id: 153, comment: 'woww', sentiment: 'Neutral'},
+            {id: 154, comment: 'where s the store and online website name', sentiment: 'Neutral'},
+            {id: 155, comment: 'no words result of your hardworks congrats', sentiment: 'Positive'},
+        ];
+
+        const sentimentCounts = bhairuData.reduce((acc, item) => {
+            acc[item.sentiment] = (acc[item.sentiment] || 0) + 1;
+            return acc;
+        }, {});
+
+        const totalComments = bhairuData.length;
+        const positivityRate = ((sentimentCounts.Positive / totalComments) * 100).toFixed(1) + '%';
+        
+        document.getElementById('total-comments').textContent = totalComments;
+        document.getElementById('positivity-rate').textContent = positivityRate;
+
+        const sentimentCtx = document.getElementById('sentimentChart').getContext('2d');
+        new Chart(sentimentCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Positive', 'Neutral', 'Negative'],
+                datasets: [{
+                    data: [sentimentCounts.Positive, sentimentCounts.Neutral, sentimentCounts.Negative],
+                    backgroundColor: ['#06D6A0', '#FFD166', '#FF6B6B'],
+                    borderColor: '#F8F9FA',
+                    borderWidth: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `${context.label}: ${context.raw}`
+                        }
+                    }
+                }
+            }
+        });
+
+        const commentsContainer = document.getElementById('comments-container');
+        const filterButtons = document.querySelectorAll('.btn-filter');
+
+        const feedbackData = {
+            loves: [
+                { comment: "this is success / proud of you", idea: "Feature success stories and follower highlights to build a stronger community." },
+                { comment: "love women in businesses / this is the dream of every independent woman", idea: "Create content focused on female entrepreneurship and empowerment to connect with this highly engaged group." },
+                { comment: "really inspiring / you are a true inspiration to me", idea: "Share more behind-the-scenes content and personal stories to maintain your relatable, inspirational persona." }
+            ],
+            wants: [
+                { comment: "this is my dream / i can see this happening for you", idea: "Create content that helps your audience achieve their dreams. Offer tips, guides, and tutorials." },
+                { comment: "i am so happy for you / hope so inshaallah my bussiness also reach at this peak", idea: "Develop a content series on starting a business from scratch, sharing your knowledge and inspiring others." },
+                { comment: "my dream is to be a businesswoman", idea: "Address this directly with Q&A sessions or a live mentorship series." }
+            ],
+            pains: [
+                { comment: "her small business will always run her from home / this is not what i expected from you", idea: "Showcase the legitimacy and scale of your business. Highlight your professionalism and growth to address these doubts." },
+                { comment: "this is so fake / i hate you", idea: "Address negative feedback with a positive attitude. Use it as an opportunity to reinforce your authentic brand and connect with your loyal supporters." }
+            ]
+        };
+
+        function renderFeedbackCards(containerId, data, color) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.className = `comment-card p-4 rounded-lg shadow-sm border border-gray-200`;
+                card.innerHTML = `
+                    <p class="font-medium text-gray-800 italic mb-2">"${item.comment}"</p>
+                    <p class="text-gray-600"><span class="font-bold text-${color}-500">Action:</span> ${item.idea}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        renderFeedbackCards('loves-container', feedbackData.loves, 'green');
+        renderFeedbackCards('wants-container', feedbackData.wants, 'yellow');
+        renderFeedbackCards('pains-container', feedbackData.pains, 'red');
+
+        function renderComments(sentiment) {
+            const filteredData = sentiment === 'all' ? bhairuData : bhairuData.filter(item => item.sentiment === sentiment);
+            commentsContainer.innerHTML = '';
+            filteredData.forEach(item => {
+                let colorClass = '';
+                if (item.sentiment === 'Positive') colorClass = 'bg-[#06D6A0]';
+                if (item.sentiment === 'Neutral') colorClass = 'bg-[#FFD166]';
+                if (item.sentiment === 'Negative') colorClass = 'bg-[#FF6B6B]';
+
+                const commentCard = document.createElement('div');
+                commentCard.className = `comment-card p-4 rounded-lg shadow-sm border border-gray-200`;
+                commentCard.innerHTML = `
+                    <p class="font-medium text-gray-800">${item.comment}</p>
+                    <span class="inline-block mt-2 px-3 py-1 text-xs font-semibold rounded-full text-white ${colorClass}">${item.sentiment}</span>
+                `;
+                commentsContainer.appendChild(commentCard);
+            });
+        }
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                filterButtons.forEach(btn => {
+                    btn.classList.remove('active', 'bg-[#FFD166]', 'text-[#073B4C]');
+                    btn.classList.add('bg-gray-200', 'text-gray-600');
+                });
+                button.classList.add('active', 'bg-[#FFD166]', 'text-[#073B4C]');
+                button.classList.remove('bg-gray-200', 'text-gray-600');
+                renderComments(button.dataset.filter);
+            });
+        });
+
+        renderComments('all');
+    </script>
+</body>
+</html>
